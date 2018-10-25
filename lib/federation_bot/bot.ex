@@ -6,7 +6,7 @@ defmodule FederationBot.Bot do
     ExMastodon.Stream.WebSocket.start_link(
       __MODULE__,
       initial_state,
-      "#{Application.get_env(:federation_bot, :mastodon)[:base_url]}/api/v1/streaming/?stream=user",
+      "#{Application.get_env(:federation_bot, :mastodon)[:base_url]}/api/v1/streaming/?stream=public",
       Application.get_env(:federation_bot, :mastodon)[:access_token]
     )
   end
@@ -14,14 +14,14 @@ defmodule FederationBot.Bot do
   def handle_connect(_conn, state), do: {:ok, state}
 
   def handle_frame(:text, "update", payload, state) do
-    # TODO
+    FederationBot.Mastodon.expand_follows(payload)
     {:ok, state}
   end
 
-  def handle_frame(:text, "notification", %{"type" => "follow", "account" => account} = _payload, state) do
+  def handle_frame(:text, "notification", %{"type" => "follow", "account" => %{"id" => id, "acct" => acct}} = _payload, state) do
     # Auto re-follow
-    {:ok, _json, _headers} = FederationBot.Mastodon.follow(account)
-    IO.puts "Follow an account: #{account["acct"]}"
+    {:ok, _json, _headers} = FederationBot.Mastodon.follow(id)
+    IO.puts "Follow an account: #{acct}"
     {:ok, state}
   end
 
