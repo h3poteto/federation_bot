@@ -9,7 +9,7 @@ defmodule FederationBot.Mastodon do
   end
 
   def follow(id) do
-    if Mix.env == :prod and !following?(id) do
+    if Mix.env == :prod and followable?(id) do
       client()
       |> API.post("/api/v1/#{id}/follow")
     else
@@ -30,9 +30,9 @@ defmodule FederationBot.Mastodon do
     {:ok}
   end
 
-  def following?(account_id) do
+  def followable?(account_id) do
     with {:ok, [body], _headers} <- client() |> API.get("/api/v1/accounts/relationships", [{"id", account_id}]),
-         %{"following" => true, "blocking" => false, "requested" => false, "domain_blocking" => false} <- body do
+         %{"following" => false, "blocking" => false, "requested" => false, "domain_blocking" => false} <- body do
       true
     else
       _ -> false
