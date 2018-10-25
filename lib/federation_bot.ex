@@ -1,18 +1,14 @@
 defmodule FederationBot do
-  @moduledoc """
-  Documentation for FederationBot.
-  """
+  use Application
 
-  @doc """
-  Hello world.
+  def start(_type, _args) do
+    import Supervisor.Spec, warn: false
 
-  ## Examples
+    children = [
+      worker(FederationBot.Bot, [[]]),
+    ]
 
-      iex> FederationBot.hello()
-      :world
-
-  """
-  def hello do
-    :world
+    opts = [strategy: :one_for_one, name: FederationBot.Supervisor]
+    Supervisor.start_link(children, opts)
   end
 end
